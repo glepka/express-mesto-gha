@@ -19,7 +19,7 @@ module.exports.getUserById = (req, res) => {
     })
     .catch(err => {
       if (err.name === 'CastError') {
-        return res.status(DATA_ERR).send({ err, message: 'Неверный формат id.' });
+        return res.status(DATA_ERR).send({ message: 'Неверный формат id.' });
       }
       return res.status(DEFAULT_ERR).send({ message: 'Что-то пошло не так.' });
     });
@@ -55,6 +55,9 @@ module.exports.updateUser = (req, res) => {
       return res.status(200).send({ data: user });
     })
     .catch(err => {
+      if (err.name === 'CastError') {
+        return res.status(DATA_ERR).send({ message: 'Неверный формат id.' });
+      }
       if (err.name === 'ValidationError') {
         return res.status(DATA_ERR).send({
           message: 'Некорректные данные при обновлении профиля.',
@@ -80,9 +83,12 @@ module.exports.updateAvatar = (req, res) => {
       return res.status(200).send({ data: user });
     })
     .catch(err => {
+      if (err.name === 'CastError') {
+        return res.status(DATA_ERR).send({ message: 'Неверный формат id.' });
+      }
       if (err.name === 'ValidationError') {
         return res.status(DATA_ERR).send({
-          message: 'Некорректные данные при создании пользователя.',
+          message: 'Некорректные данные при обновлении аватара.',
         });
       }
       return res.status(DEFAULT_ERR).send({ message: 'Что-то пошло не так.' });
