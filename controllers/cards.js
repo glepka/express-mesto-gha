@@ -40,10 +40,16 @@ module.exports.deleteCard = (req, res) => {
 };
 
 module.exports.likeCard = (req, res) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $addToSet: { likes: req.user._id } }, { new: true })
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true },
+  )
     .then(card => {
       if (!card) {
-        return res.status(NOT_FOUND_ERR).send({ message: 'Несуществующий id карточки.' });
+        return res
+          .status(NOT_FOUND_ERR)
+          .send({ message: 'Несуществующий id карточки.' });
       }
       return res.status(200).send({ data: card });
     })
@@ -56,10 +62,16 @@ module.exports.likeCard = (req, res) => {
 };
 
 module.exports.dislikeCard = (req, res) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $pull: { likes: req.user._id } }, { new: true })
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { likes: req.user._id } },
+    { new: true },
+  )
     .then(card => {
       if (!card) {
-        return res.status(NOT_FOUND_ERR).send({ message: 'Несуществующий id карточки.' });
+        return res
+          .status(NOT_FOUND_ERR)
+          .send({ message: 'Несуществующий id карточки.' });
       }
       return res.status(200).send({ data: card });
     })
