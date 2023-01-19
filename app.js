@@ -23,7 +23,7 @@ app.use(auth);
 app.use('/users', usersRouter);
 app.use('/cards', cardsRouter);
 app.use('*', (req, res) => {
-  res.status(NOT_FOUND_ERR).send('Страница не существует.');
+  res.status(NOT_FOUND_ERR).send({ message: 'Страница не существует.' });
 });
 
 app.use(errors());
