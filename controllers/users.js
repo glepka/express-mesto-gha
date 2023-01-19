@@ -1,96 +1,95 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { DEFAULT_ERR, NOT_FOUND_ERR, DATA_ERR } = require('../utils/constants');
+const NotFound = require('../errors/NotFound');
+const Conflict = require('../errors/Conflict');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
-    .then(users => res.status(200).send(users))
-    .catch(() => res.status(DEFAULT_ERR).send({ message: 'Что-то пошло не так.' }));
+    .then(users => res.send(users))
+    .catch(next);
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUser = (req, res, next) => {
+  User.findOne({ _id: req.user._id })
+    .then(user => res.send(user))
+    .catch(next);
+};
+
+module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
+    .orFail(() => {
+      throw new NotFound('Пользователь не найден.');
+    })
+    .then(user => res.send(user))
+    .catch(next);
+};
+
+module.exports.createUser = (req, res, next) => {
+  const { email, password, name, about, avatar } = req.body;
+  bcrypt
+    .hash(password, 10)
+    .then(hash =>
+      User.create({
+        email,
+        password: hash,
+        name,
+        about,
+        avatar,
+      }),
+    )
     .then(user => {
-      if (!user) {
-        return res
-          .status(NOT_FOUND_ERR)
-          .send({ message: 'Пользователь с указанным id не найден.' });
-      }
-      return res.status(200).send(user);
+      res.send({ data: user });
     })
     .catch(err => {
-      if (err.name === 'CastError') {
-        return res.status(DATA_ERR).send({ message: 'Неверный формат id.' });
+      if (err.code === 11000) {
+        return Promise.reject(
+          new Conflict(
+            'Пользователь с таким адресом электронной почты уже существует.',
+          ),
+        );
       }
-      return res.status(DEFAULT_ERR).send({ message: 'Что-то пошло не так.' });
-    });
+      return Promise.reject(err);
+    })
+    .catch(next);
 };
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then(user => res.status(200).send({ data: user }))
-    .catch(err => {
-      if (err.name === 'ValidationError') {
-        return res.status(DATA_ERR).send({
-          message: 'Некорректные данные при создании пользователя.',
-        });
-      }
-      return res.status(DEFAULT_ERR).send({ message: 'Что-то пошло не так.' });
-    });
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+  User.findUserByCredentials(email, password)
+    .then(user => {
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
+        expiresIn: '7d',
+      });
+      res.send({ token });
+    })
+    .catch(next);
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
     { name, about },
     { new: true, runValidators: true },
   )
-    .then(user => {
-      if (!user) {
-        return res
-          .status(NOT_FOUND_ERR)
-          .send({ message: 'Пользователь c указанным id не найден.' });
-      }
-      return res.status(200).send({ data: user });
+    .orFail(() => {
+      throw new NotFound('Пользователь не найден.');
     })
-    .catch(err => {
-      if (err.name === 'CastError') {
-        return res.status(DATA_ERR).send({ message: 'Неверный формат id.' });
-      }
-      if (err.name === 'ValidationError') {
-        return res.status(DATA_ERR).send({
-          message: 'Некорректные данные при обновлении профиля.',
-        });
-      }
-      return res.status(DEFAULT_ERR).send({ message: 'Что-то пошло не так.' });
-    });
+    .then(user => res.send({ data: user }))
+    .catch(next);
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
     { avatar },
     { new: true, runValidators: true },
   )
-    .then(user => {
-      if (!user) {
-        return res
-          .status(NOT_FOUND_ERR)
-          .send({ message: 'Пользователь c указанным id не найден.' });
-      }
-      return res.status(200).send({ data: user });
+    .orFail(() => {
+      throw new NotFound('Пользователь не найден.');
     })
-    .catch(err => {
-      if (err.name === 'CastError') {
-        return res.status(DATA_ERR).send({ message: 'Неверный формат id.' });
-      }
-      if (err.name === 'ValidationError') {
-        return res.status(DATA_ERR).send({
-          message: 'Некорректные данные при обновлении аватара.',
-        });
-      }
-      return res.status(DEFAULT_ERR).send({ message: 'Что-то пошло не так.' });
-    });
+    .then(user => res.send({ data: user }))
+    .catch(next);
 };
