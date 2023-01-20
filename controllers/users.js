@@ -43,15 +43,15 @@ module.exports.createUser = (req, res, next) => {
     })
     .catch(err => {
       if (err.code === 11000) {
-        return Promise.reject(
+        next(
           new Conflict(
             'Пользователь с таким адресом электронной почты уже существует.',
           ),
         );
+        return;
       }
-      return Promise.reject(err);
-    })
-    .catch(next);
+      next(err);
+    });
 };
 
 module.exports.login = (req, res, next) => {

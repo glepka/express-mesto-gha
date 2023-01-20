@@ -22,8 +22,8 @@ app.post('/signup', validateRegistration, createUser);
 app.use(auth);
 app.use('/users', usersRouter);
 app.use('/cards', cardsRouter);
-app.use('*', (req, res) => {
-  res.status(NOT_FOUND_ERR).send({ message: 'Страница не существует.' });
+app.use('*', (req, res, next) => {
+  next(new NotFound('Страница не найдена'));
 });
 
 app.use(errors());

@@ -1,11 +1,8 @@
 {
-  "extends": "airbnb-base",
+  "extends": ["airbnb-base", "prettier"],
+  "plugins": ["prettier"],
   "rules": {
     "no-underscore-dangle": ["error", { "allow": ["_id"] }],
-    "arrow-parens": ["error", "as-needed"],
-    "implicit-arrow-linebreak": 0,
-    "object-curly-newline": 0,
-    "function-paren-newline": 0,
-    "operator-linebreak": 0
+    "arrow-parens": ["error", "as-needed"]
   }
 }
