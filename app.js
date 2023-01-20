@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
 const usersRouter = require('./routes/users');
 const cardsRouter = require('./routes/cards');
-const { NOT_FOUND_ERR } = require('./utils/constants');
+const NotFound = require('./errors/NotFound');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const { validateLogin, validateRegistration } = require('./middlewares/validation');
@@ -23,7 +23,7 @@ app.use(auth);
 app.use('/users', usersRouter);
 app.use('/cards', cardsRouter);
 app.use('*', (req, res, next) => {
-  next(new NotFound('Страница не найдена'));
+  next(new NotFound('Страница не существует.'));
 });
 
 app.use(errors());
